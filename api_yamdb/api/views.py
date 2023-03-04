@@ -1,12 +1,13 @@
 import uuid
 
 from django.core.mail import send_mail
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from users.models import CustomUser
+from .permissions import IsAdmin
 from .serializers import (SignUpSerializer, UserSerializer,
                           UserSerializerReadOnly)
 
@@ -14,14 +15,14 @@ from .serializers import (SignUpSerializer, UserSerializer,
 class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
-    permission_classes = ...
+    permission_classes = (IsAdmin,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'
 
     @action(methods=['POST'],
             detail=False,
-            permission_classes=...)
+            permission_classes=(permissions.IsAuthenticated,))
     def create_user(self, request):
         serializer = UserSerializerReadOnly(data=request.data)
         if serializer.is_valid():
@@ -34,7 +35,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(methods=['GET', 'PATCH'],
             detail=False,
-            permission_classes='...',
+            permission_classes=(permissions.IsAuthenticated,),
             url_path='me')
     def change_info(self, request):
         serializer = UserSerializer(request.user)
