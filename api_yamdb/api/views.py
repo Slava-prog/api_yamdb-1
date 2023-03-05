@@ -8,13 +8,13 @@ from .serializers import (
     ReviewSerializer,
     CommentSerializer
 )
-# from .permissions import ...
+from .permissions import IsAdminModeratorAuthororReadOnly
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для объектов класса Отзывов."""
     serializer_class = ReviewSerializer
-    # permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [IsAdminModeratorAuthororReadOnly, ]
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
@@ -31,7 +31,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для объектов класса комментариев к отзывам."""
     serializer_class = CommentSerializer
-    # permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [IsAdminModeratorAuthororReadOnly, ]
     queryset = Comment.objects.all()
     pagination_class = PageNumberPagination
 
