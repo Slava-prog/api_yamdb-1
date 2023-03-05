@@ -1,11 +1,12 @@
 from rest_framework import serializers
-# from rest_framework.relations import SlugRelatedField
+from rest_framework.relations import SlugRelatedField
 
 from reviews.models import Comment, Review
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    # author = SlugRelatedField(slug_field='username', read_only=True)
+    """Сериализатор для класса отзывов"""
+    author = SlugRelatedField(slug_field='username', read_only=True)
 
     class Meta:
         fields = ('id', 'text', 'author', 'score', 'pub_date')
@@ -14,7 +15,8 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    # author = SlugRelatedField(read_only=True, slug_field='username')
+    """Сериализатор для класса комментариев к отзывам"""
+    author = SlugRelatedField(read_only=True, slug_field='username')
 
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date')

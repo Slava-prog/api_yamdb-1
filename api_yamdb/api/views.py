@@ -12,6 +12,7 @@ from .serializers import (
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """Вьюсет для объектов класса Отзывов."""
     serializer_class = ReviewSerializer
     # permission_classes = [IsOwnerOrReadOnly]
     pagination_class = PageNumberPagination
@@ -28,6 +29,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет для объектов класса комментариев к отзывам."""
     serializer_class = CommentSerializer
     # permission_classes = [IsOwnerOrReadOnly]
     queryset = Comment.objects.all()

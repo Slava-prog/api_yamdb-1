@@ -10,9 +10,11 @@ class Review(models.Model):
         related_name='reviews'
     )
     text = models.TextField()
-    author = models.IntegerField()
-    '''models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='reviews')'''
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
     score = models.IntegerField(
         validators=[
             MinValueValidator(
@@ -36,9 +38,11 @@ class Review(models.Model):
 class Comment(models.Model):
     """Комментарии к отзывам."""
     text = models.TextField()
-    author = models.IntegerField()
-    '''models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments')'''
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
