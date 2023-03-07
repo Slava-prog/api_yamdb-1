@@ -7,20 +7,23 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from django.shortcuts import render
+from django.shortcuts import get_object_or_404
+from rest_framework.pagination import PageNumberPagination
 
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg
 
 from users.models import CustomUser
-from reviews.models import Category, Genre, Title
-from .permissions import IsAdmin
+from reviews.models import Category, Genre, Title, Comment, Review, Title
+from .permissions import IsAdmin, IsAdminModeratorAuthororReadOnly
 from .mixins import CreateDestroyListViewSet
 from .filters import TitleFilter
 from .serializers import (SignUpSerializer, UserSerializer,
                           UserSerializerReadOnly, CategorySerializer,
                           GenreSerializer,
                           TitleGETSerializer,
-                          TitlePOSTSerializer)
+                          TitlePOSTSerializer, ReviewSerializer,
+    CommentSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -116,4 +119,38 @@ class TitleViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return TitleGETSerializer
         return TitlePOSTSerializer                           
-                            
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    """Вьюсет для объектов класса Отзывов."""
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAdminModeratorAuthororReadOnly, ]
+    pagination_class = PageNumberPagination
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        return title.reviews.all()
+
+    def perform_create(self, serializer):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        serializer.save(author=2, title=title)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет для объектов класса комментариев к отзывам."""
+    serializer_class = CommentSerializer
+    permission_classes = [IsAdminModeratorAuthororReadOnly, ]
+    queryset = Comment.objects.all()
+    pagination_class = PageNumberPagination
+
+    def get_queryset(self):
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, id=review_id)
+        return review.comments.all()
+
+    def perform_create(self, serializer):
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, id=review_id)
+        serializer.save(author=1, review=review)

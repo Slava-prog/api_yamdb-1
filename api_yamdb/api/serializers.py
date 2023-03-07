@@ -1,7 +1,10 @@
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
-from reviews.models import Category, Title, Genre
+from rest_framework.relations import SlugRelatedField
+from reviews.models import Category, Title, Genre, Comment, Review
 from users.models import CustomUser
+
+
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -79,4 +82,21 @@ class TitlePOSTSerializer(serializers.ModelSerializer):
         model = Title
         fields = '__all__'
         
-       
+class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор для класса отзывов"""
+    author = SlugRelatedField(slug_field='username', read_only=True)
+
+    class Meta:
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        model = Review
+        read_only_fields = ('title', 'pub_date', 'author')
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор для класса комментариев к отзывам"""
+    author = SlugRelatedField(read_only=True, slug_field='username')
+
+    class Meta:
+        fields = ('id', 'text', 'author', 'pub_date')
+        model = Comment
+        read_only_fields = ('author', 'review', 'pub_date')
