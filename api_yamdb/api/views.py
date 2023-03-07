@@ -5,11 +5,22 @@ from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import viewsets
+from django.shortcuts import render
+
+from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Avg
 
 from users.models import CustomUser
+from reviews.models import Category, Genre, Title
 from .permissions import IsAdmin
+from .mixins import CreateDestroyListViewSet
+from .filters import TitleFilter
 from .serializers import (SignUpSerializer, UserSerializer,
-                          UserSerializerReadOnly)
+                          UserSerializerReadOnly, CategorySerializer,
+                          GenreSerializer,
+                          TitleGETSerializer,
+                          TitlePOSTSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -78,3 +89,31 @@ class APISignUp(APIView):
         else:
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
+                            
+ class CategoryViewSet(CreateDestroyListViewSet):
+    """Вьюсет для объектов класса Category"""
+
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class GenreViewSet(CreateDestroyListViewSet):
+    """Вьюсет для объектов класса Genre"""
+
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    """Вьюсет для объектов класса Title"""
+
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
+    permission_classes  = ...
+    filter_backends = (DjangoFilterBackend, )
+    filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return TitleGETSerializer
+        return TitlePOSTSerializer                           
+                            
