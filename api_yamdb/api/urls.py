@@ -3,15 +3,14 @@ from rest_framework import routers
 from django.urls import include, path
 from rest_framework import routers
 
-from .views import CategoryViewSet, TitleViewSet, GenreViewSet, APISignUp, UserViewSet, CommentViewSet, ReviewViewSet, TitleViewSet
+from .views import (CategoryViewSet, TitleViewSet,
+                    GenreViewSet, APISignUp,
+                    UserViewSet, CommentViewSet,
+                    ReviewViewSet, TitleViewSet)
 
 app_name = 'api'
 
 router_v1 = routers.DefaultRouter()
-router_v1.register(
-    'titles',
-    TitleViewSet,
-)
 router_v1.register(
     'titles/(?P<title_id>\\d+)/reviews',
     ReviewViewSet,
@@ -22,17 +21,12 @@ router_v1.register(
     CommentViewSet,
     basename='comments'
 )
+router_v1.register('categories', CategoryViewSet, basename='categories')
+router_v1.register('genres', GenreViewSet, basename='genre')
+router_v1.register('titles', TitleViewSet, basename='titles')
+router_v1.register('users', UserViewSet, basename='users')
 
 urlpatterns = [
     path('v1/', include(router_v1.urls)),
-]
-router = routers.DefaultRouter()
-router.register('categories', CategoryViewSet, basename='categories')
-router.register('genres', GenreViewSet, basename='genre')
-router.register('titles', TitleViewSet, basename='titles')
-router.register('users', UserViewSet, basename='users')
-
-urlpatterns = [
-    path('v1/', include(router.urls)),
     path('v1/auth/signup/', APISignUp.as_view()),
 ]

@@ -6,7 +6,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
 
@@ -17,13 +16,12 @@ from users.models import CustomUser
 from reviews.models import Category, Genre, Title, Comment, Review, Title
 from .permissions import IsAdmin, IsAdminModeratorAuthororReadOnly
 from .mixins import CreateDestroyListViewSet
-from .filters import TitleFilter
+# from .filters import TitleFilter
 from .serializers import (SignUpSerializer, UserSerializer,
                           UserSerializerReadOnly, CategorySerializer,
-                          GenreSerializer,
-                          TitleGETSerializer,
+                          GenreSerializer, TitleGETSerializer,
                           TitlePOSTSerializer, ReviewSerializer,
-    CommentSerializer)
+                          CommentSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -92,8 +90,9 @@ class APISignUp(APIView):
         else:
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
-                            
- class CategoryViewSet(CreateDestroyListViewSet):
+
+
+class CategoryViewSet(CreateDestroyListViewSet):
     """Вьюсет для объектов класса Category"""
 
     queryset = Category.objects.all()
@@ -111,20 +110,20 @@ class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для объектов класса Title"""
 
     queryset = Title.objects.annotate(rating=Avg('reviews__score'))
-    permission_classes  = ...
+    permission_classes = (IsAdminModeratorAuthororReadOnly,)
     filter_backends = (DjangoFilterBackend, )
-    filterset_class = TitleFilter
+    # filterset_class = TitleFilter
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return TitleGETSerializer
-        return TitlePOSTSerializer                           
+        return TitlePOSTSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для объектов класса Отзывов."""
     serializer_class = ReviewSerializer
-    permission_classes = [IsAdminModeratorAuthororReadOnly, ]
+    permission_classes = (IsAdminModeratorAuthororReadOnly,)
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
@@ -135,13 +134,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
-        serializer.save(author=2, title=title)
+        serializer.save(author=self.request.user, title=title)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для объектов класса комментариев к отзывам."""
     serializer_class = CommentSerializer
-    permission_classes = [IsAdminModeratorAuthororReadOnly, ]
+    permission_classes = (IsAdminModeratorAuthororReadOnly,)
     queryset = Comment.objects.all()
     pagination_class = PageNumberPagination
 
@@ -153,4 +152,4 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id)
-        serializer.save(author=1, review=review)
+        serializer.save(author=self.request.user, review=review)

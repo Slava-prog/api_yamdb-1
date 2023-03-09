@@ -40,7 +40,8 @@ class SignUpSerializer(serializers.ModelSerializer):
                 message='Использовать имя "me" в качестве username запрещено!'
             )
         return data
-        
+
+
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Category"""
 
@@ -81,7 +82,8 @@ class TitlePOSTSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
-        
+
+
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для класса отзывов"""
     author = SlugRelatedField(slug_field='username', read_only=True)

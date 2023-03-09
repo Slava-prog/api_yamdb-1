@@ -1,6 +1,8 @@
 from django.db import models
-from djando.core.validators import MinValueValidator, MaxValueValidator
-from datetime import datetime
+from django.core.validators import MinValueValidator, MaxValueValidator
+# from datetime import datetime
+
+from users.models import CustomUser
 
 
 class Category(models.Model):
@@ -60,7 +62,7 @@ class Title(models.Model):
                 0, message='Введённое значение не может быть отрицательным'
             ),
             MaxValueValidator(
-                datetime.now().year(),
+                2023,
                 message='Введённое значение не может быть больше текущего года'
             ),
         ],
@@ -90,7 +92,6 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
-        
 
 
 class Review(models.Model):
@@ -102,7 +103,7 @@ class Review(models.Model):
     )
     text = models.TextField()
     author = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         related_name='reviews'
     )
@@ -130,7 +131,7 @@ class Comment(models.Model):
     """Комментарии к отзывам."""
     text = models.TextField()
     author = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         related_name='comments'
     )

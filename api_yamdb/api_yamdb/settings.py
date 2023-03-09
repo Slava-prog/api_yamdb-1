@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'api',
     'reviews',
     'rest_framework',
+    'rest_framework_simplejwt',
     'django_filters',
     'users',
 ]
