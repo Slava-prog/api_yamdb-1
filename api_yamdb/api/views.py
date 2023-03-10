@@ -1,30 +1,76 @@
-import uuid
-
-from django.core.mail import send_mail
+from django.contrib.auth.tokens import default_token_generator
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework import viewsets
-from django.shortcuts import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import AccessToken
 
-from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Avg
-
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import CustomUser
-from reviews.models import Category, Genre, Title, Comment, Review, Title
-from .permissions import IsAdmin, IsAdminModeratorAuthororReadOnly
-from .mixins import CreateDestroyListViewSet
 # from .filters import TitleFilter
-from .serializers import (SignUpSerializer, UserSerializer,
-                          UserSerializerReadOnly, CategorySerializer,
-                          GenreSerializer, TitleGETSerializer,
-                          TitlePOSTSerializer, ReviewSerializer,
-                          CommentSerializer)
+from .mixins import CreateDestroyListViewSet, CreateMixin
+from .permissions import IsAdmin, IsAdminModeratorAuthororReadOnly
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ObtainTokenSerializer,
+                          ReviewSerializer, SignUpSerializer,
+                          TitleGETSerializer, TitlePOSTSerializer,
+                          UserSerializer, UserSerializerReadOnly)
+from .utils import check_confirmation_code, send_confirmation_code
+
+
+class SignUpViewSet(CreateMixin):
+    """Вьюсет для создания обьектов класса User."""
+    queryset = CustomUser.objects.all()
+    serializer_class = SignUpSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    def create(self, request):
+        if CustomUser.objects.filter(
+            username=request.data.get('username'),
+            email=request.data.get('email'),
+        ).exists():
+            return Response(request.data, status=status.HTTP_200_OK)
+        serializer = SignUpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user, _ = CustomUser.objects.get_or_create(
+            **serializer.validated_data
+        )
+        send_confirmation_code(
+            email=user.email,
+            confirmation_code=default_token_generator.make_token(user)
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ObtainTokenViewSet(CreateMixin):
+    """Вьюсет для получения пользователем JWT токена."""
+    queryset = CustomUser.objects.all()
+    serializer_class = ObtainTokenSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    def create(self, request, *args, **kwargs):
+        serializer = ObtainTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data.get('username')
+        confirmation_code = serializer.validated_data.get('confirmation_code')
+        user = get_object_or_404(CustomUser, username=username)
+
+        if check_confirmation_code(user, confirmation_code):
+            return Response(
+                {'token': str(AccessToken.for_user(user))},
+                status=status.HTTP_200_OK
+            )
+        return Response(
+            {'confirmation_code': 'Код подтверждения недействителен'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    """Вьюсет для обьектов модели User."""
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdmin,)
@@ -32,11 +78,13 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields = ('username',)
     lookup_field = 'username'
 
-    @action(methods=['POST'],
-            detail=False,
-            permission_classes=(permissions.IsAuthenticated,))
+    @action(
+        methods=['POST'],
+        detail=False,
+        permission_classes=(permissions.IsAuthenticated,)
+    )
     def create_user(self, request):
-        serializer = UserSerializerReadOnly(data=request.data)
+        serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data,
@@ -44,6 +92,25 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        methods=['GET', 'PATCH', 'DELETE'],
+        detail=False,
+        url_path=r'(?P<username>[\w.@+-]+)',
+        url_name='get_user',
+    )
+    def get_user(self, request, username):
+        user = get_object_or_404(CustomUser, username=username)
+        if request.method == "PATCH":
+            serializer = UserSerializer(user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        elif request.method == "DELETE":
+            user.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(methods=['GET', 'PATCH'],
             detail=False,
@@ -66,30 +133,6 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.data)
-
-
-class APISignUp(APIView):
-    def post(self, request):
-        confirmation_code = str(uuid.uuid4())
-        serializer = SignUpSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(
-                username=request.data['username'],
-                confirmation_code=confirmation_code
-            )
-            send_mail(
-                'Код подтверждения на YamDB',
-                f'Для подтверждения регистрации используйте код:'
-                f'{confirmation_code}',
-                'from@example.com',
-                [serializer.data['email']],
-                fail_silently=False
-            )
-            return Response(serializer.data,
-                            status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class CategoryViewSet(CreateDestroyListViewSet):

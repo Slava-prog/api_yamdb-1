@@ -1,22 +1,28 @@
 import uuid
 
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 from django.db import models
-
-USER = 'user'
-ADMIN = 'admin'
-MODERATOR = 'moderator'
-ROLE_CHOICES = [
-    (USER, USER),
-    (ADMIN, ADMIN),
-    (MODERATOR, MODERATOR)
-]
 
 
 class CustomUser(AbstractUser):
+    USER = 'user'
+    ADMIN = 'admin'
+    MODERATOR = 'moderator'
+    ROLE_CHOICES = [
+        (USER, 'Пользователь'),
+        (ADMIN, 'Администратор'),
+        (MODERATOR, 'Модератор')
+    ]
     username = models.CharField(
         max_length=150,
         unique=True,
+        validators=[
+            RegexValidator(
+                regex=r'^[\w.@+-]+$',
+                message='Имя пользователя содержит недопустимый символ'
+            )
+        ],
         verbose_name='Никнейм'
     )
     email = models.EmailField(
@@ -48,6 +54,14 @@ class CustomUser(AbstractUser):
         default=uuid.uuid4(),
         verbose_name='Код'
     )
+
+    @property
+    def is_admin(self):
+        return self.role == self.ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == self.MODERATOR
 
     class Meta:
         ordering = ['id']

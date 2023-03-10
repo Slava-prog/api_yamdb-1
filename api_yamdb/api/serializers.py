@@ -1,38 +1,41 @@
-from rest_framework import serializers
 from django.core.exceptions import ValidationError
+from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from reviews.models import Category, Title, Genre, Comment, Review
+
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import CustomUser
 
 
 class UserSerializer(serializers.ModelSerializer):
-
+    """Сериализатор для модели User."""
     class Meta:
         model = CustomUser
         fields = (
             'username', 'email',
-            'role', 'bio'
+            'role', 'bio',
             'first_name', 'last_name',
         )
 
 
 class UserSerializerReadOnly(serializers.ModelSerializer):
+    """Сериализатор для модели User, позволяющий
+    осуществлять только безопасные запросы."""
     role = serializers.CharField(read_only=True)
 
     class Meta:
         model = CustomUser
         fields = (
             'username', 'email',
-            'role', 'bio'
+            'role', 'bio',
             'first_name', 'last_name',
         )
 
 
 class SignUpSerializer(serializers.ModelSerializer):
-
+    """Сериализатор для создания объектов класса User."""
     class Meta:
         model = CustomUser
-        fields = ('email', 'username')
+        fields = ('username', 'email')
 
     def validate(self, data):
         if data['username'] == 'me':
@@ -42,8 +45,20 @@ class SignUpSerializer(serializers.ModelSerializer):
         return data
 
 
+class ObtainTokenSerializer(serializers.ModelSerializer):
+    """Сериализатор для объектов класса User при получении токена."""
+    username = serializers.RegexField(
+        regex=r"^[\w.@+-]+$", max_length=150, required=True
+    )
+    confirmation_code = serializers.CharField(max_length=150, required=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ('username', 'confirmation_code')
+
+
 class CategorySerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Category"""
+    """Сериализатор для модели Category."""
 
     class Meta:
         model = Category
@@ -51,7 +66,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Genre"""
+    """Сериализатор для модели Genre."""
 
     class Meta:
         model = Genre
@@ -85,7 +100,7 @@ class TitlePOSTSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    """Сериализатор для класса отзывов"""
+    """Сериализатор для класса отзывов."""
     author = SlugRelatedField(slug_field='username', read_only=True)
 
     class Meta:
@@ -95,7 +110,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    """Сериализатор для класса комментариев к отзывам"""
+    """Сериализатор для класса комментариев к отзывам."""
     author = SlugRelatedField(read_only=True, slug_field='username')
 
     class Meta:

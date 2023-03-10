@@ -1,5 +1,7 @@
-from rest_framework import mixins, viewsets, filters
+from rest_framework import filters, mixins, viewsets
+from rest_framework.mixins import CreateModelMixin
 from rest_framework.pagination import PageNumberPagination
+
 from .permissions import IsAdminModeratorAuthororReadOnly
 
 
@@ -13,3 +15,7 @@ class CreateDestroyListViewSet(mixins.CreateModelMixin,
     search_fields = ['name', ]
     lookup_field = 'slug'
     pagination_class = PageNumberPagination
+
+
+class CreateMixin(CreateModelMixin, viewsets.GenericViewSet):
+    pass
