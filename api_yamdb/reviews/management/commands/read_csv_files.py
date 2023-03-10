@@ -1,28 +1,29 @@
 import pandas as pd
 
 from django.core.management.base import BaseCommand
+
 from reviews.models import Category, Comment, Genre, Review, Title, GenreTitle
 from users.models import CustomUser
 
 
 class Command(BaseCommand):
-    help = "importing data from csv"
+    help = 'importing data from csv'
 
     def add_arguments(self, parser):
         pass
 
     def handle(self, *args, **options):
-        df = pd.read_csv("static/data/category.csv")
+        df = pd.read_csv('static/data/category.csv')
         for import_name, import_slug in zip(df.name, df.slug):
             models = Category(name=import_name, slug=import_slug)
             models.save()
 
-        df = pd.read_csv("static/data/genre.csv")
+        df = pd.read_csv('static/data/genre.csv')
         for import_name, import_slug in zip(df.name, df.slug):
             models = Genre(name=import_name, slug=import_slug)
             models.save()
 
-        df = pd.read_csv("static/data/titles.csv")
+        df = pd.read_csv('static/data/titles.csv')
         for import_name, import_year, import_category in zip(
             df.name, df.year, df.category
         ):
@@ -33,7 +34,7 @@ class Command(BaseCommand):
             )
             models.save()
 
-        df = pd.read_csv("static/data/users.csv")
+        df = pd.read_csv('static/data/users.csv')
         for (
             import_id,
             import_username,
@@ -62,14 +63,14 @@ class Command(BaseCommand):
             )
             models.save()
 
-        df = pd.read_csv("static/data/genre_title.csv")
+        df = pd.read_csv('static/data/genre_title.csv')
         for import_title_id, import_genre_id in zip(df.title_id,
                                                     df.genre_id):
             models = GenreTitle(title_id=import_title_id,
                                 genre_id=import_genre_id)
             models.save()
 
-        df = pd.read_csv("static/data/review.csv")
+        df = pd.read_csv('static/data/review.csv')
         for (
             import_title_id,
             import_text,
@@ -92,7 +93,7 @@ class Command(BaseCommand):
             )
             models.save()
 
-        df = pd.read_csv("static/data/comments.csv")
+        df = pd.read_csv('static/data/comments.csv')
         for (
             import_review_id,
             import_text,

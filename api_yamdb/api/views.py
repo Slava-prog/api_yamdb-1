@@ -138,7 +138,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class CategoryViewSet(CreateDestroyListViewSet):
     """Вьюсет для объектов класса Category"""
-
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -146,7 +145,6 @@ class CategoryViewSet(CreateDestroyListViewSet):
 
 class GenreViewSet(CreateDestroyListViewSet):
     """Вьюсет для объектов класса Genre"""
-
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -154,8 +152,9 @@ class GenreViewSet(CreateDestroyListViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для объектов класса Title"""
-
-    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')
+    ).order_by('id')
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend, )
     filterset_class = TitleFilter

@@ -74,6 +74,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleGETSerializer(serializers.ModelSerializer):
+    """Сериализатор для объектов класса Title для обработки GET-запросов"""
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
     rating = serializers.IntegerField(read_only=True)
@@ -84,6 +85,8 @@ class TitleGETSerializer(serializers.ModelSerializer):
 
 
 class TitlePOSTSerializer(serializers.ModelSerializer):
+    """Сериализатор для объектов класса Title
+    для обработки небезопасных запросов"""
     genre = serializers.SlugRelatedField(
         many=True,
         slug_field='slug',

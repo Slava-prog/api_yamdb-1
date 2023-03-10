@@ -12,7 +12,7 @@ class CreateDestroyListViewSet(mixins.CreateModelMixin,
 
     permission_classes = (IsAdminModeratorAuthororReadOnly,)
     filter_backends = [filters.SearchFilter]
-    search_fields = ['name', ]
+    search_fields = ['name']
     lookup_field = 'slug'
     pagination_class = PageNumberPagination
 
