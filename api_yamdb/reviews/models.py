@@ -13,8 +13,8 @@ class Category(models.Model):
         db_index=True
     )
     slug = models.SlugField(
-        'Slug',
-        max_length=100,
+        'slug',
+        max_length=50,
         unique=True
     )
 
@@ -35,8 +35,8 @@ class Genre(models.Model):
         db_index=True
     )
     slug = models.SlugField(
-        'Slug',
-        max_length=100,
+        'slug',
+        max_length=50,
         unique=True
     )
 
@@ -94,12 +94,35 @@ class Title(models.Model):
         return self.name
 
 
+class GenreTitle(models.Model):
+    """Вспомогательный класс, связывающий жанры и произведения."""
+
+    genre = models.ForeignKey(
+        Genre,
+        on_delete=models.CASCADE,
+        verbose_name='Жанр'
+    )
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        verbose_name='произведение'
+    )
+
+    class Meta:
+        verbose_name = 'Соответствие жанра и произведения'
+        verbose_name_plural = 'Таблица соответствия жанров и произведений'
+        ordering = ('id',)
+
+    def __str__(self):
+        return f'{self.title} принадлежит жанру(ам) {self.genre}'
+
+
 class Review(models.Model):
     """Класс отзывов."""
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name='reviews',
     )
     text = models.TextField()
     author = models.ForeignKey(
@@ -125,6 +148,12 @@ class Review(models.Model):
 
     class Meta:
         ordering = ['-pub_date']
+        constraints = (
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_author_title'
+            ),
+        )
 
 
 class Comment(models.Model):
