@@ -17,20 +17,6 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class UserSerializerReadOnly(serializers.ModelSerializer):
-    """Сериализатор для модели User, позволяющий
-    осуществлять только безопасные запросы."""
-    role = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = CustomUser
-        fields = (
-            'username', 'email',
-            'role', 'bio',
-            'first_name', 'last_name',
-        )
-
-
 class SignUpSerializer(serializers.ModelSerializer):
     """Сериализатор для создания объектов класса User."""
     class Meta:
@@ -38,9 +24,17 @@ class SignUpSerializer(serializers.ModelSerializer):
         fields = ('username', 'email')
 
     def validate(self, data):
-        if data['username'] == 'me':
+        if data['username'].lower() == 'me':
             raise ValidationError(
                 message='Использовать имя "me" в качестве username запрещено!'
+            )
+        if CustomUser.objects.filter(username=data.get('username')):
+            raise serializers.ValidationError(
+                'Пользователь с таким "username" уже существует'
+            )
+        if CustomUser.objects.filter(email=data.get('email')):
+            raise serializers.ValidationError(
+                'Пользователь с таким "email" уже существует'
             )
         return data
 

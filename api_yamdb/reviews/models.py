@@ -1,7 +1,7 @@
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from users.models import CustomUser
+from .validators import my_year_validator, my_score_validator
 
 
 class Category(models.Model):
@@ -55,16 +55,7 @@ class Title(models.Model):
     )
     year = models.PositiveIntegerField(
         verbose_name='Год издания',
-        validators=[
-            MinValueValidator(
-                0,
-                message='Введённое значение не может быть отрицательным'
-            ),
-            MaxValueValidator(
-                2023,
-                message='Введённое значение не может быть больше текущего года'
-            ),
-        ],
+        validators=[my_year_validator],
         db_index=True,
         help_text='Введите возможный год издания произведения',
     )
@@ -129,16 +120,7 @@ class Review(models.Model):
         related_name='reviews'
     )
     score = models.IntegerField(
-        validators=[
-            MinValueValidator(
-                0,
-                message='Значение должно находиться в диапазоне [0:10]'
-            ),
-            MaxValueValidator(
-                10,
-                message='Значение должно находиться в диапазоне [0:10]'
-            ),
-        ],
+        validators=[my_score_validator],
         db_index=True,
     )
     pub_date = models.DateTimeField(

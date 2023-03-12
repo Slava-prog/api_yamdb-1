@@ -18,7 +18,7 @@ from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ObtainTokenSerializer,
                           ReviewSerializer, SignUpSerializer,
                           TitleGETSerializer, TitlePOSTSerializer,
-                          UserSerializer, UserSerializerReadOnly)
+                          UserSerializer)
 from .utils import check_confirmation_code, send_confirmation_code
 
 
@@ -86,13 +86,9 @@ class UserViewSet(viewsets.ModelViewSet):
     )
     def create_user(self, request):
         serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,
-                            status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(
         methods=['GET', 'PATCH', 'DELETE'],
@@ -120,18 +116,13 @@ class UserViewSet(viewsets.ModelViewSet):
     def change_info(self, request):
         serializer = UserSerializer(request.user)
         if request.method == 'PATCH':
-            if request.user.role == 'admin' or request.user.is_staff:
-                serializer = UserSerializer(
-                    request.user,
-                    data=request.data,
-                    partial=True)
-            else:
-                serializer = UserSerializerReadOnly(
-                    request.user,
-                    data=request.data,
-                    partial=True)
+            serializer = UserSerializer(
+                request.user,
+                data=request.data,
+                partial=True,
+            )
             serializer.is_valid(raise_exception=True)
-            serializer.save()
+            serializer.save(role=request.user.role)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.data)
 
