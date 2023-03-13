@@ -25,6 +25,10 @@ from .utils import check_confirmation_code, send_confirmation_code
 
 class SignUpViewSet(APIView):
     """Вьюсет для создания обьектов класса User."""
+    queryset = CustomUser.objects.all()
+    serializer_class = SignUpSerializer
+    permission_classes = (permissions.AllowAny,)
+
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

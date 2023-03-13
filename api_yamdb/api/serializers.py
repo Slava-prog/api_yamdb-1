@@ -32,6 +32,12 @@ class SignUpSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True, max_length=254)
 
     def validate(self, data):
+        if CustomUser.objects.filter(
+            username=data.get('username'),
+            email=data.get('email')
+        ):
+            return data
+
         if data['username'].lower() == 'me':
             raise ValidationError(
                 message='Использовать имя "me" в качестве username запрещено!'
