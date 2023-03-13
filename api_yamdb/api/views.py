@@ -6,6 +6,7 @@ from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Comment, Genre, Review, Title
@@ -22,22 +23,15 @@ from .serializers import (CategorySerializer, CommentSerializer,
 from .utils import check_confirmation_code, send_confirmation_code
 
 
-class SignUpViewSet(CreateMixin):
+class SignUpViewSet(APIView):
     """Вьюсет для создания обьектов класса User."""
-    queryset = CustomUser.objects.all()
-    serializer_class = SignUpSerializer
-    permission_classes = (permissions.AllowAny,)
-
-    def create(self, request):
-        if CustomUser.objects.filter(
-            username=request.data.get('username'),
-            email=request.data.get('email'),
-        ).exists():
-            return Response(request.data, status=status.HTTP_200_OK)
+    def post(self, request):
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        username = serializer.data['username']
+        email = serializer.data['email']
         user, _ = CustomUser.objects.get_or_create(
-            **serializer.validated_data
+            email=email, username=username
         )
         send_confirmation_code(
             email=user.email,

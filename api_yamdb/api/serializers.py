@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
@@ -17,11 +18,18 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class SignUpSerializer(serializers.ModelSerializer):
+class SignUpSerializer(serializers.Serializer):
     """Сериализатор для создания объектов класса User."""
-    class Meta:
-        model = CustomUser
-        fields = ('username', 'email')
+    username = serializers.CharField(
+        required=True,
+        max_length=150,
+        validators=[
+            RegexValidator(
+                regex=r'^[\w.@+-]+$',
+                message='Имя пользователя содержит недопустимый символ'
+            )
+        ])
+    email = serializers.EmailField(required=True, max_length=254)
 
     def validate(self, data):
         if data['username'].lower() == 'me':

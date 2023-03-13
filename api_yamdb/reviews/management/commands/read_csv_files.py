@@ -2,7 +2,7 @@ import pandas as pd
 
 from django.core.management.base import BaseCommand
 
-from reviews.models import Category, Comment, Genre, Review, Title, GenreTitle
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import CustomUser
 
 
@@ -61,13 +61,6 @@ class Command(BaseCommand):
                 first_name=import_fn,
                 last_name=import_ln,
             )
-            models.save()
-
-        df = pd.read_csv('static/data/genre_title.csv')
-        for import_title_id, import_genre_id in zip(df.title_id,
-                                                    df.genre_id):
-            models = GenreTitle(title_id=import_title_id,
-                                genre_id=import_genre_id)
             models.save()
 
         df = pd.read_csv('static/data/review.csv')
