@@ -32,10 +32,9 @@ class SignUpViewSet(APIView):
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        username = serializer.data['username']
-        email = serializer.data['email']
+        serializer.validated_data
         user, _ = CustomUser.objects.get_or_create(
-            email=email, username=username
+            **serializer.validated_data
         )
         send_confirmation_code(
             email=user.email,

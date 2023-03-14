@@ -1,7 +1,7 @@
 from django.db import models
 
 from users.models import CustomUser
-from .validators import my_year_validator, my_score_validator
+from .validators import year_validator, score_validator
 
 
 class Category(models.Model):
@@ -55,7 +55,7 @@ class Title(models.Model):
     )
     year = models.PositiveIntegerField(
         verbose_name='Год издания',
-        validators=[my_year_validator],
+        validators=[year_validator],
         db_index=True,
         help_text='Введите возможный год издания произведения',
     )
@@ -98,7 +98,7 @@ class Review(models.Model):
         related_name='reviews'
     )
     score = models.IntegerField(
-        validators=[my_score_validator],
+        validators=[score_validator],
         db_index=True,
     )
     pub_date = models.DateTimeField(
